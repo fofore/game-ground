@@ -55,7 +55,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [5, 8],
     solo: false,
-    playable: false,
+    playable: true,
     inspiration: { ko: '더 마인드', en: 'The Mind' },
     rules: [
       '모두에게 서로 다른 1~100 카드가 몰래 배정됩니다.',
@@ -74,7 +74,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [5, 8],
     solo: false,
-    playable: false,
+    playable: true,
     inspiration: { ko: '너도나도 파티' },
     rules: [
       '돌아가며 주제를 내고, 출제자도 함께 답합니다.',
@@ -93,7 +93,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [3, 5],
     solo: false,
-    playable: false,
+    playable: true,
     inspiration: { ko: '패스 더 밤', en: 'Pass the Bomb' },
     rules: [
       '주제에 맞는 단어를 차례로 입력합니다. 이미 나온 단어는 쓸 수 없어요.',

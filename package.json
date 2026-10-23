@@ -7,7 +7,7 @@
     "build": "vite build",
     "start": "NODE_ENV=production tsx server/index.ts",
     "typecheck": "tsc --noEmit",
-    "test": "tsx test/flow.test.ts"
+    "test": "tsx test/games.test.ts && tsx test/flow.test.ts"
   },
   "license": "UNLICENSED",
   "dependencies": {

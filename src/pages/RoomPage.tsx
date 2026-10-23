@@ -5,6 +5,9 @@ import { call, rulesSeen, socket } from '../net';
 import { AVATAR_COLORS, CodeTiles, RulesModal } from '../components/ui';
 import { GameArt } from '../components/GameArt';
 import { LowestUniqueView } from '../games/LowestUnique';
+import { SecretNumberView } from '../games/SecretNumber';
+import { SameMindView } from '../games/SameMind';
+import { WordBombView } from '../games/WordBomb';
 
 export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => void }) {
   const g = gameById(room.gameId)!;
@@ -30,8 +33,16 @@ export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => voi
 
       {room.status === 'lobby' ? (
         <Lobby room={room} meIsHost={me.isHost} />
+      ) : !room.game ? (
+        <p className="empty">게임을 불러오는 중…</p>
       ) : room.gameId === 'lowest-unique' ? (
         <LowestUniqueView room={room} solo={solo} onLeave={leave} />
+      ) : room.gameId === 'secret-number' ? (
+        <SecretNumberView room={room} onLeave={leave} />
+      ) : room.gameId === 'same-mind' ? (
+        <SameMindView room={room} onLeave={leave} />
+      ) : room.gameId === 'word-bomb' ? (
+        <WordBombView room={room} onLeave={leave} />
       ) : (
         <p className="empty">이 게임은 준비 중이에요.</p>
       )}
