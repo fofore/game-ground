@@ -170,17 +170,18 @@ const players = (n: number): GamePlayer[] => Array.from({ length: n }, (_, i) =>
   assert.ok(treasureBid.onAction(s, 'p0', { type: 'pick', number: 16 }, f.ctx));
   treasureBid.onAction(s, 'p0', { type: 'pick', number: 7 }, f.ctx);
   treasureBid.onAction(s, 'p1', { type: 'pick', number: 7 }, f.ctx);
-  f.advance(8000); // AI 선택 → 공개
+  for (let i = 0; i < 20 && s.phase !== 'reveal'; i++) f.advance(500); // AI 선택 → 공개
   assert.equal(s.phase, 'reveal');
   assert.ok(!s.hands.p0.includes(7));
   // 다 겹친 경우 보물이 쌓임
   f.advance(4500);
+  const potBefore = s.pot.length; // 첫 라운드에 AI까지 겹쳤다면 이미 2장일 수 있음
   s.picks = { p0: null, p1: null, bot_x: 1 } as any;
   treasureBid.onAction(s, 'p0', { type: 'pick', number: 1 }, f.ctx);
   treasureBid.onAction(s, 'p1', { type: 'pick', number: 1 }, f.ctx);
   assert.equal(s.last?.carried, true);
   f.advance(4500);
-  assert.equal(s.pot.length, 2);
+  assert.equal(s.pot.length, potBefore + 1);
   // 시간 초과: 가장 작은 카드 자동 제출, 15라운드 후 끝
   for (let i = 0; i < 20; i++) f.advance(25_000);
   assert.equal(s.phase, 'end');
