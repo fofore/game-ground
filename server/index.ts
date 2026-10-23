@@ -13,6 +13,8 @@ const app = express();
 const http = createServer(app);
 const io = new Server(http, { cors: { origin: process.env.CORS_ORIGIN?.split(',') ?? false } });
 
+app.get('/healthz', (_req, res) => res.send('ok'));
+
 // 화면 파일(빌드 결과) 제공
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dist = path.resolve(here, '../dist');
@@ -20,7 +22,6 @@ if (fs.existsSync(dist)) {
   app.use(express.static(dist));
   app.get(/^\/(?!socket\.io).*/, (_req, res) => res.sendFile(path.join(dist, 'index.html')));
 }
-app.get('/healthz', (_req, res) => res.send('ok'));
 
 const sockets = new Map<string, Set<Socket>>(); // playerId -> sockets
 
