@@ -19,6 +19,11 @@ function getToken() {
 
 export const socket: Socket = io({ auth: { token: getToken() }, transports: ['websocket', 'polling'] });
 
+// 기기 시계가 서버와 달라도 남은 시간이 맞게 보이도록 차이를 기억
+let clockOffset = 0;
+socket.on('hello', (d: { now?: number }) => { if (d.now) clockOffset = d.now - Date.now(); });
+export const serverNow = () => Date.now() + clockOffset;
+
 export const nickname = {
   get: () => store.get('gg:nick') ?? '',
   set: (n: string) => store.set('gg:nick', n.trim().slice(0, 12)),
@@ -64,9 +69,9 @@ export function useConnection() {
 
 /** 서버 기준 남은 시간(초) */
 export function useCountdown(deadline: number) {
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(serverNow());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 200);
+    const t = setInterval(() => setNow(serverNow()), 200);
     return () => clearInterval(t);
   }, [deadline]);
   return Math.max(0, (deadline - now) / 1000);

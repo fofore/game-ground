@@ -71,8 +71,8 @@ export function EndActions({ isHost, onLeave, solo }: { isHost: boolean; onLeave
 }
 
 /** 아래쪽 점수판 */
-export function ScoreStrip({ room, scores, status }: {
-  room: RoomView; scores: Record<string, number>; status?: (id: string) => { text: string; done?: boolean; hot?: boolean } | null;
+export function ScoreStrip({ room, scores, status, hideScore }: {
+  room: RoomView; scores: Record<string, number>; status?: (id: string) => { text: string; done?: boolean; hot?: boolean } | null; hideScore?: boolean;
 }) {
   return (
     <ul className="score-strip" aria-label="점수">
@@ -82,7 +82,7 @@ export function ScoreStrip({ room, scores, status }: {
           <li key={p.id} className={`${st?.done ? 'done' : ''} ${st?.hot ? 'hot' : ''}`}>
             <Avatar room={room} id={p.id} size="sm" />
             <span className="seat-name">{p.nickname}{p.id === room.you ? ' (나)' : ''}</span>
-            <b>{scores[p.id] ?? 0}</b>
+            {hideScore ? <span /> : <b>{scores[p.id] ?? 0}</b>}
             {st && <span className="check">{st.text}</span>}
           </li>
         );

@@ -52,7 +52,7 @@ io.on('connection', (socket) => {
 
   // 재접속: 원래 있던 방이 있으면 상태를 바로 보냄
   const room = rooms.reconnect(playerId);
-  socket.emit('hello', { playerId, room: room ? rooms.viewFor(room, playerId) : null });
+  socket.emit('hello', { playerId, now: Date.now(), room: room ? rooms.viewFor(room, playerId) : null });
 
   socket.on('rooms:watch', (on: boolean) => {
     if (on) { socket.join('lobby'); socket.emit('rooms:list', rooms.publicList()); }

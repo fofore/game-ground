@@ -8,6 +8,10 @@ import { LowestUniqueView } from '../games/LowestUnique';
 import { SecretNumberView } from '../games/SecretNumber';
 import { SameMindView } from '../games/SameMind';
 import { WordBombView } from '../games/WordBomb';
+import { TreasureBidView } from '../games/TreasureBid';
+import { RaceBetView } from '../games/RaceBet';
+import { DrawRelayView } from '../games/DrawRelay';
+import { FakeArtistView } from '../games/FakeArtist';
 
 export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => void }) {
   const g = gameById(room.gameId)!;
@@ -43,6 +47,14 @@ export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => voi
         <SameMindView room={room} onLeave={leave} />
       ) : room.gameId === 'word-bomb' ? (
         <WordBombView room={room} onLeave={leave} />
+      ) : room.gameId === 'treasure-bid' ? (
+        <TreasureBidView room={room} onLeave={leave} />
+      ) : room.gameId === 'race-bet' ? (
+        <RaceBetView room={room} onLeave={leave} />
+      ) : room.gameId === 'draw-relay' ? (
+        <DrawRelayView room={room} onLeave={leave} />
+      ) : room.gameId === 'fake-artist' ? (
+        <FakeArtistView room={room} onLeave={leave} />
       ) : (
         <p className="empty">이 게임은 준비 중이에요.</p>
       )}

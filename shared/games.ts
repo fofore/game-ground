@@ -111,7 +111,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [8, 12],
     solo: true,
-    playable: false,
+    playable: true,
     inspiration: { ko: '독수리 눈치싸움', en: "Hol's der Geier" },
     rules: [
       '모두 1~15 카드를 들고, 매 라운드 한 장씩 동시에 냅니다. 낸 카드는 다시 못 써요.',
@@ -130,7 +130,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [5, 8],
     solo: true,
-    playable: false,
+    playable: true,
     inspiration: { ko: '레디 셋 벳', en: 'Ready Set Bet' },
     rules: [
       '60초 동안 자동으로 진행되는 경주를 모두 같이 봅니다.',
@@ -148,7 +148,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [5, 10],
     solo: false,
-    playable: false,
+    playable: true,
     inspiration: { ko: '텔레스트레이션', en: 'Telestrations' },
     rules: [
       '시작 문장을 적어 옆 사람에게 넘깁니다.',
@@ -166,7 +166,7 @@ export const GAMES: GameInfo[] = [
     maxPlayers: 8,
     minutes: [5, 10],
     solo: false,
-    playable: false,
+    playable: true,
     inspiration: { ko: '가짜 예술가 뉴욕에 가다', en: 'A Fake Artist Goes to New York' },
     rules: [
       '출제자가 주제를 정하면, 출제자를 뺀 한 명이 몰래 가짜 화가가 됩니다.',

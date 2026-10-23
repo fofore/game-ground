@@ -4,6 +4,10 @@ import type { GameContext, GamePlayer } from '../server/games/types';
 import { secretNumber, playCard, type SecretNumberState } from '../server/games/secretNumber';
 import { sameMind, roundPoints, type SameMindState } from '../server/games/sameMind';
 import { wordBomb, type WordBombState } from '../server/games/wordBomb';
+import { treasureBid, resolvePicks, scoreOf, type TreasureState } from '../server/games/treasureBid';
+import { raceBet, ranking, settle, type RaceState, type Bet } from '../server/games/raceBet';
+import { drawRelay, bookFor, type DrawRelayState } from '../server/games/drawRelay';
+import { fakeArtist, mostVoted, type FakeArtistState } from '../server/games/fakeArtist';
 
 /** 시간을 직접 돌릴 수 있는 가짜 게임 환경 */
 function fakeCtx() {
@@ -149,6 +153,137 @@ const players = (n: number): GamePlayer[] => Array.from({ length: n }, (_, i) =>
   assert.equal(t.words[0].status, 'ok');
   assert.equal(t.scores.p0, 0);
   console.log('✓ 폭탄 단어');
+}
+
+
+// ---------- 보물 눈치싸움 ----------
+{
+  const gem = (value: number, g: any = null) => ({ value, gem: g });
+  // 보물: 겹치지 않은 가장 큰 수 / 함정: 겹치지 않은 가장 작은 수
+  assert.equal(resolvePicks({ a: 15, b: 15, c: 3 }, [gem(5)]), 'c');
+  assert.equal(resolvePicks({ a: 15, b: 2, c: 9 }, [gem(-3)]), 'b');
+  assert.equal(resolvePicks({ a: 4, b: 4 }, [gem(2)]), null);
+  assert.deepEqual(scoreOf([gem(1, 'ruby'), gem(2, 'sapphire'), gem(3, 'emerald'), gem(-2)]), { sum: 4, sets: 1, total: 9 });
+  const f = fakeCtx();
+  const s = treasureBid.create([...players(2), { id: 'bot_x', nickname: 'B', isBot: true }], f.ctx) as TreasureState;
+  assert.equal(s.pot.length, 1);
+  assert.ok(treasureBid.onAction(s, 'p0', { type: 'pick', number: 16 }, f.ctx));
+  treasureBid.onAction(s, 'p0', { type: 'pick', number: 7 }, f.ctx);
+  treasureBid.onAction(s, 'p1', { type: 'pick', number: 7 }, f.ctx);
+  f.advance(8000); // AI 선택 → 공개
+  assert.equal(s.phase, 'reveal');
+  assert.ok(!s.hands.p0.includes(7));
+  // 다 겹친 경우 보물이 쌓임
+  f.advance(4500);
+  s.picks = { p0: null, p1: null, bot_x: 1 } as any;
+  treasureBid.onAction(s, 'p0', { type: 'pick', number: 1 }, f.ctx);
+  treasureBid.onAction(s, 'p1', { type: 'pick', number: 1 }, f.ctx);
+  assert.equal(s.last?.carried, true);
+  f.advance(4500);
+  assert.equal(s.pot.length, 2);
+  // 시간 초과: 가장 작은 카드 자동 제출, 15라운드 후 끝
+  for (let i = 0; i < 20; i++) f.advance(25_000);
+  assert.equal(s.phase, 'end');
+  assert.ok(Object.values(s.hands).every((h) => h.length === 0));
+  console.log('✓ 보물 눈치싸움');
+}
+
+// ---------- 우당탕 레이스 ----------
+{
+  assert.deepEqual(ranking([10, 30, 30, 5]), [1, 2, 0, 3]);
+  assert.deepEqual(ranking([100, 100, 50], [1, 0]), [1, 0, 2]);
+  const order = [2, 0, 1, 3, 4, 5];
+  const b = (x: Partial<Bet>): Bet => ({ by: 'p0', chip: 3, kind: 'win', runner: 2, early: true, ...x });
+  assert.equal(settle(b({}), order), 15);
+  assert.equal(settle(b({ early: false }), order), 9);
+  assert.equal(settle(b({ runner: 0 }), order), -3);
+  assert.equal(settle(b({ kind: 'top3', runner: 1 }), order), 6);
+  assert.equal(settle(b({ kind: 'h2h', runner: 0, rival: 1, early: false }), order), 3);
+  assert.equal(settle(b({ kind: 'h2h', runner: 3, rival: 1 }), order), -3);
+  const f = fakeCtx();
+  const s = raceBet.create([...players(2), { id: 'bot_y', nickname: 'B', isBot: true }], f.ctx) as RaceState;
+  assert.equal(s.phase, 'ready');
+  assert.equal(raceBet.onAction(s, 'p0', { type: 'bet', chip: 5, kind: 'win', runner: 0 }, f.ctx), undefined); // 준비 중 베팅 가능 (일찍 = 5배)
+  assert.ok(raceBet.onAction(s, 'p0', { type: 'bet', chip: 5, kind: 'top3', runner: 1 }, f.ctx)); // 같은 칩 두 번 불가
+  assert.ok(raceBet.onAction(s, 'p0', { type: 'bet', chip: 4, kind: 'h2h', runner: 1, rival: 1 }, f.ctx));
+  f.advance(5000 + 41_000);
+  assert.ok(raceBet.onAction(s, 'p1', { type: 'bet', chip: 1, kind: 'win', runner: 0 }, f.ctx)); // 마감
+  f.advance(20_000);
+  assert.equal(s.phase, 'result');
+  assert.ok(s.pos.some((d) => d > 50));
+  assert.equal(s.bets.find((x) => x.by === 'p0')?.early, true);
+  assert.ok(s.bets.some((x) => x.by === 'bot_y'));
+  for (let i = 0; i < 4; i++) f.advance(80_000);
+  assert.equal(s.phase, 'end');
+  console.log('✓ 우당탕 레이스');
+}
+
+// ---------- 그림 릴레이 ----------
+{
+  const f = fakeCtx();
+  const s = drawRelay.create(players(3), f.ctx) as DrawRelayState;
+  assert.deepEqual([0, 1, 2].map((i) => bookFor(s, i)), [0, 1, 2]);
+  for (const id of ['p0', 'p1', 'p2']) drawRelay.onAction(s, id, { type: 'submit', text: `${id}의 문장` }, f.ctx);
+  assert.equal(s.step, 1);
+  assert.deepEqual([0, 1, 2].map((i) => bookFor(s, i)), [2, 0, 1]); // 옆 사람 책을 받음
+  const v1 = drawRelay.view(s, 'p1') as any;
+  assert.equal(v1.task, 'draw');
+  assert.equal(v1.prompt.text, 'p0의 문장');
+  assert.equal(v1.books.length, 0); // 공개 전엔 책 안 보임
+  drawRelay.onAction(s, 'p1', { type: 'submit', drawing: [{ c: 0, w: 1, p: [0, 0, 500, 500, 9999, -5] }, { c: 99, w: 0, p: [1, 2] }] }, f.ctx);
+  assert.deepEqual((s.books[0][1] as any).drawing, [{ c: 0, w: 1, p: [0, 0, 500, 500, 1000, 0] }]); // 잘못된 값 정리
+  f.advance(95_000); // 나머지 시간 초과 → 빈 그림
+  assert.equal(s.step, 2);
+  f.advance(50_000);
+  assert.equal(s.phase, 'reveal');
+  assert.ok(s.books.every((b) => b.length === 3));
+  drawRelay.onAction(s, 'p2', { type: 'next', book: 0 }, f.ctx);
+  drawRelay.onAction(s, 'p0', { type: 'next', book: 0 }, f.ctx); // 중복 눌림 무시
+  assert.equal(s.revealBook, 1);
+  drawRelay.onAction(s, 'p0', { type: 'next', book: 1 }, f.ctx);
+  drawRelay.onAction(s, 'p0', { type: 'next', book: 2 }, f.ctx);
+  assert.equal(s.phase, 'end');
+  console.log('✓ 그림 릴레이');
+}
+
+// ---------- 가짜 화가 ----------
+{
+  assert.equal(mostVoted({ a: 'x', b: 'x', c: 'y' }), 'x');
+  assert.equal(mostVoted({ a: 'x', b: 'y' }), null);
+  const f = fakeCtx();
+  const s = fakeArtist.create(players(4), f.ctx) as FakeArtistState;
+  assert.notEqual(s.asker, s.fake);
+  const fakeView = fakeArtist.view(s, s.fake) as any;
+  assert.equal(fakeView.role, 'fake');
+  fakeArtist.onAction(s, s.asker, { type: 'topic', category: '동물', word: '기린' }, f.ctx);
+  assert.equal((fakeArtist.view(s, s.fake) as any).word, null); // 가짜는 제시어 모름
+  assert.equal((fakeArtist.view(s, s.asker) as any).word, '기린');
+  assert.equal((fakeArtist.view(s, s.fake) as any).category, '동물');
+  // 차례가 아니면 못 그림, 시간 초과면 건너뜀
+  const notTurn = s.order.find((id) => id !== s.order[0])!;
+  assert.ok(fakeArtist.onAction(s, notTurn, { type: 'stroke', stroke: { c: 0, w: 1, p: [1, 1, 2, 2] } }, f.ctx));
+  fakeArtist.onAction(s, s.order[0], { type: 'stroke', stroke: { c: 0, w: 1, p: [1, 1, 2, 2] } }, f.ctx);
+  f.advance(30_000);
+  assert.equal(s.turn, 2);
+  for (let i = 2; i < 8; i++) fakeArtist.onAction(s, s.order[i % 4], { type: 'stroke', stroke: { c: 1, w: 0, p: [5, 5, 9, 9] } }, f.ctx);
+  assert.equal(s.phase, 'vote');
+  assert.ok(fakeArtist.onAction(s, s.fake, { type: 'vote', target: s.asker }, f.ctx));
+  const innocent = s.players.find((p) => p.id !== s.fake && p.id !== s.asker)!.id;
+  for (const p of s.players) fakeArtist.onAction(s, p.id, { type: 'vote', target: p.id === s.fake ? innocent : s.fake }, f.ctx);
+  assert.equal(s.phase, 'guess');
+  fakeArtist.onAction(s, s.fake, { type: 'guess', guess: ' 기 린' }, f.ctx);
+  assert.equal(s.winner, 'fake');
+  // 엉뚱한 사람 지목 → 가짜 승리
+  const g = fakeCtx();
+  const t = fakeArtist.create(players(4), g.ctx) as FakeArtistState;
+  g.advance(60_000); // 출제 시간 초과 → 자동 주제
+  assert.equal(t.phase, 'draw');
+  for (let i = 0; i < 8; i++) g.advance(30_000);
+  assert.equal(t.phase, 'vote');
+  const wrong = t.players.find((p) => p.id !== t.fake && p.id !== t.asker)!.id;
+  for (const p of t.players) fakeArtist.onAction(t, p.id, { type: 'vote', target: p.id === wrong ? t.fake : wrong }, g.ctx);
+  assert.equal(t.winner, 'fake');
+  console.log('✓ 가짜 화가');
 }
 
 console.log('\n게임 규칙 테스트 통과');

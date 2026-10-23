@@ -384,3 +384,107 @@ button, input, select { font: inherit; color: inherit; }
 /* 게임 화면 칸이 내용 때문에 화면 밖으로 넓어지지 않게 */
 .lu, .sn, .mind, .wb, .result, .lobby, .sm-card, .answers, .topic-card, .my-hand, .vote-box, .bomb-stage { grid-template-columns: minmax(0, 1fr); }
 .suggest .chip { flex: 0 1 auto; white-space: normal; }
+
+/* ---------- 3단계 공용 ---------- */
+.sub-h { font-size: 20px; margin-bottom: 10px; }
+.small { font-size: 13px; }
+.small-t { font-size: 15px; }
+.tb, .rb, .dr, .fa { display: grid; gap: 16px; padding-top: 16px; grid-template-columns: minmax(0, 1fr); }
+.row-2.even { grid-template-columns: 1fr 1fr; }
+
+/* ---------- 보물 눈치싸움 ---------- */
+.pot {
+  background: var(--felt); border: 2px solid var(--ink); border-radius: var(--r-box); box-shadow: 0 5px 0 var(--ink);
+  padding: 18px 16px; display: grid; gap: 12px; justify-items: center; text-align: center;
+}
+.pot-cards { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.pot-msg { color: #DCE1FF; }
+.prize {
+  display: inline-grid; justify-items: center; gap: 2px; width: 74px; padding: 10px 0 8px;
+  background: var(--tile); border: 2px solid var(--ink); border-radius: 12px; box-shadow: 0 4px 0 var(--tile-edge), 0 4px 0 2px var(--ink);
+}
+.prize svg { width: 34px; height: 34px; }
+.prize b { font-family: var(--display); font-weight: 400; font-size: 22px; }
+.prize.trap { background: #FFD3DC; box-shadow: 0 4px 0 #E79AAB, 0 4px 0 2px var(--ink); }
+.prize.small { width: 52px; padding: 6px 0 4px; box-shadow: none; }
+.prize.small svg { width: 22px; height: 22px; }
+.prize.small b { font-size: 16px; }
+.numpad.fifteen { grid-template-columns: repeat(5, 1fr); }
+.numpad.fifteen .num { aspect-ratio: 1 / 1; font-size: clamp(22px, 6.5vw, 32px); }
+.loot { display: flex; flex-wrap: wrap; gap: 6px; }
+.my-loot { display: grid; gap: 8px; }
+
+/* ---------- 우당탕 레이스 ---------- */
+.track {
+  background: #6FB84A; border: 2px solid var(--ink); border-radius: var(--r-box); padding: 10px 10px 10px 8px;
+  display: grid; gap: 6px; box-shadow: 0 5px 0 var(--ink);
+}
+.lane { display: grid; grid-template-columns: 36px 1fr auto; gap: 8px; align-items: center; }
+.lane-no {
+  width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--ink); font-family: var(--display); font-size: 18px; cursor: pointer;
+}
+.lane.picked .lane-no { outline: 3px solid var(--white); outline-offset: 1px; }
+.lane-run { position: relative; height: 34px; border-bottom: 2px dashed rgba(29,33,66,.35); }
+.runner {
+  position: absolute; bottom: 2px; width: 30px; height: 24px; border-radius: 50% 50% 45% 45%; border: 2px solid var(--ink);
+  transition: left .5s linear;
+}
+.runner .eye { position: absolute; right: 4px; top: 5px; width: 8px; height: 8px; background: var(--white); border: 2px solid var(--ink); border-radius: 50%; }
+.goal { position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: repeating-linear-gradient(var(--ink) 0 6px, var(--white) 6px 12px); }
+.place { font-family: var(--display); color: var(--white); min-width: 32px; text-shadow: 0 1px 0 var(--ink); }
+.bet-panel { display: grid; gap: 10px; }
+.seg-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--white); border: 2px solid var(--ink); border-radius: var(--r-ctl); overflow: hidden; }
+.seg-tabs button { border: 0; background: none; min-height: 44px; font-family: var(--display); font-size: 17px; cursor: pointer; }
+.seg-tabs button.on { background: var(--ink); color: var(--white); }
+.chips-row { display: flex; gap: 10px; justify-content: center; }
+.bet-chip {
+  width: 52px; height: 52px; border-radius: 50%; border: 3px dashed var(--white); background: var(--pop); color: var(--white);
+  font-family: var(--display); font-size: 22px; cursor: pointer; box-shadow: 0 0 0 2px var(--ink), 0 4px 0 2px var(--ink);
+}
+.bet-chip.on { background: var(--sun); color: var(--ink); transform: translateY(-4px); }
+.bet-chip:disabled { opacity: .3; cursor: default; box-shadow: 0 0 0 2px var(--ink); }
+.bet-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.bet-list li { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; background: var(--white); border: 2px solid var(--line); border-radius: 12px; padding: 6px 12px; font-size: 14px; }
+.bet-list.mine li { grid-template-columns: 1fr auto; }
+.bet-list li.won { border-color: var(--mint); }
+.bet-list li.won b { color: var(--mint); }
+.bet-list li.lost b { color: #C2183D; }
+.bet-list b { font-family: var(--display); font-weight: 400; font-size: 18px; }
+
+/* ---------- 그림판 ---------- */
+.sketch { display: block; width: 100%; aspect-ratio: 1 / 1; background: var(--white); border: 2px solid var(--ink); border-radius: 14px; box-shadow: 0 4px 0 var(--ink); }
+.sketch.drawable { touch-action: none; cursor: crosshair; }
+.sketch-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.swatches, .widths { display: flex; gap: 6px; }
+.swatch { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--ink); cursor: pointer; }
+.swatch.on { box-shadow: 0 0 0 3px var(--paper), 0 0 0 5px var(--ink); }
+.wbtn { width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--line); background: var(--white); display: grid; place-items: center; cursor: pointer; }
+.wbtn.on { border-color: var(--ink); }
+.wbtn i { display: block; border-radius: 50%; background: var(--ink); }
+
+/* ---------- 그림 릴레이 ---------- */
+.dr-task { display: grid; gap: 12px; }
+.dr-task h2 { font-size: 22px; text-align: center; }
+.prompt-label { text-align: center; color: var(--ink-2); }
+.prompt { font-size: clamp(22px, 6vw, 28px); background: var(--tile); border: 2px solid var(--ink); border-radius: 14px; padding: 12px; }
+.book { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.page { display: grid; gap: 8px; }
+.page-by { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--ink-2); }
+.page-text { font-family: var(--display); font-size: 24px; background: var(--white); border: 2px solid var(--ink); border-radius: 14px; padding: 14px 16px; }
+
+/* ---------- 가짜 화가 ---------- */
+.role-card { border: 2px solid var(--ink); border-radius: 14px; padding: 12px 14px; background: var(--white); display: grid; gap: 4px; }
+.role-card.fake { background: #FFD3DC; }
+.role-card.asker { background: #FFF2C7; }
+.role-name { font-family: var(--display); font-size: 20px; }
+.turn-line { display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 500; }
+.painters { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.painters li { display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--line); border-radius: 999px; padding: 2px 10px; font-size: 14px; background: var(--white); }
+.painters li.now { border-color: var(--ink); font-weight: 700; }
+.painters i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--ink); }
+.vote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.vote-grid .btn { justify-content: flex-start; gap: 8px; font-size: 16px; }
+.fa-reveal { font-size: 17px; }
+.dr-task, .pot, .bet-panel, .race-result, .my-loot, .role-card { grid-template-columns: minmax(0, 1fr); }
+.inline-form { min-width: 0; }
+.inline-form input { width: 100%; }
