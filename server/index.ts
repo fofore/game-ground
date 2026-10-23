@@ -28,6 +28,8 @@ const sockets = new Map<string, Set<Socket>>(); // playerId -> sockets
 const rooms = new RoomManager({
   room(room: Room) {
     for (const p of room.players) {
+      // 게임 중에 나간 사람은 자리만 남아 있으니 화면을 보내지 않음
+      if (rooms.roomOf(p.id) !== room) continue;
       for (const s of sockets.get(p.id) ?? []) s.emit('room:state', rooms.viewFor(room, p.id));
     }
   },

@@ -83,6 +83,19 @@ async function main() {
   assert.equal(hello.room?.code, code);
   console.log('✓ 재접속');
 
+  // 게임 중 나가기: 자리는 남지만 나간 사람에게는 방 화면이 다시 오지 않음
+  let leaked = false;
+  guest2.on('room:state', () => { leaked = true; });
+  const hostSawLeave = next(host, 'room:state', (v: any) => v.players.some((p: any) => !p.connected));
+  assert.ok((await call(guest2, 'room:leave')).ok);
+  await hostSawLeave;
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(leaked, false, '나간 사람에게 방 화면이 다시 옴');
+  const guest3 = connect(guestToken);
+  assert.equal((await next<any>(guest3, 'hello')).room, null);
+  guest3.disconnect();
+  console.log('✓ 게임 중 나가기');
+
   // 혼자 하기: AI가 채워지고 바로 시작
   const solo = connect(token());
   await next(solo, 'hello');
