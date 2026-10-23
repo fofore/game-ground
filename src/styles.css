@@ -488,3 +488,74 @@ button, input, select { font: inherit; color: inherit; }
 .dr-task, .pot, .bet-panel, .race-result, .my-loot, .role-card { grid-template-columns: minmax(0, 1fr); }
 .inline-form { min-width: 0; }
 .inline-form input { width: 100%; }
+
+/* ---------- 폭풍의 선장 ---------- */
+.sc, .mh { display: grid; gap: 14px; padding-top: 16px; grid-template-columns: minmax(0, 1fr); }
+.sea {
+  background: #1F2F94; border: 2px solid var(--ink); border-radius: var(--r-box); box-shadow: 0 5px 0 var(--ink);
+  padding: 16px; display: grid; gap: 12px; justify-items: center; min-height: 170px; align-content: center;
+  background-image: repeating-linear-gradient(170deg, transparent 0 18px, rgba(255,255,255,.05) 18px 20px);
+}
+.sea-msg { color: #DCE1FF; text-align: center; }
+.trick { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.trick-card { display: grid; justify-items: center; gap: 4px; color: var(--white); font-size: 13px; }
+.trick-card.win .scard { outline: 4px solid var(--sun); outline-offset: 2px; }
+.scard {
+  display: inline-grid; justify-items: center; align-content: center; gap: 2px; width: 58px; height: 82px;
+  border: 2px solid var(--ink); border-radius: 10px; background: var(--white); color: var(--ink); font: inherit; padding: 0;
+  box-shadow: 0 3px 0 var(--ink); flex: none;
+}
+button.scard { cursor: pointer; }
+button.scard:not(:disabled):hover { transform: translateY(-4px); }
+button.scard:disabled { opacity: .35; cursor: not-allowed; }
+.scard b { font-family: var(--display); font-weight: 400; font-size: 28px; line-height: 1; }
+.scard small { font-size: 11px; font-weight: 700; }
+.scard svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.scard.green { background: #CDEFC4; } .scard.yellow { background: #FFE9A6; } .scard.purple { background: #E2D6FF; }
+.scard.black { background: var(--ink); color: var(--white); }
+.scard.knight, .scard.tigress { background: #FFD3DC; } .scard.captain { background: var(--sun); }
+.scard.dancer { background: #BDEBE6; } .scard.escape { background: #F1F1F1; }
+.shand { display: flex; flex-wrap: wrap; gap: 8px; }
+.bid-pad { display: grid; grid-template-columns: repeat(auto-fill, minmax(56px, 1fr)); gap: 8px; }
+.bid-pad .num { aspect-ratio: 1; font-size: 26px; }
+.round-points { width: 100%; display: grid; gap: 8px; }
+.round-points ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.round-points li { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; background: var(--white); border-radius: 10px; padding: 6px 12px; font-size: 14px; align-items: center; }
+.round-points b { font-family: var(--display); font-weight: 400; font-size: 18px; }
+.round-points .plus { color: var(--mint); } .round-points .minus { color: #C2183D; }
+
+/* ---------- 몬스터 하우스 ---------- */
+.mgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.mgrid.small { grid-template-columns: repeat(3, 26px); gap: 3px; }
+.mcard {
+  display: grid; place-items: center; align-content: center; aspect-ratio: 3 / 4; width: 100%;
+  border: 2px solid var(--ink); border-radius: 12px; background: var(--tile); color: var(--ink);
+  box-shadow: 0 4px 0 var(--ink); font: inherit; padding: 0; position: relative;
+}
+button.mcard { cursor: pointer; }
+.mcard b { font-family: var(--display); font-weight: 400; font-size: clamp(30px, 9vw, 44px); line-height: 1; }
+.mcard small { font-size: 12px; font-weight: 700; }
+.mcard.back { background: #8C6CF0; }
+.mcard.back svg { width: 60%; }
+.mcard.spin { background: #FF7A59; } .mcard.eye { background: #5B8DEF; color: var(--white); } .mcard.copy { background: #C3A6FF; }
+.mcard.peeked { outline: 3px dashed var(--pop); outline-offset: 2px; }
+.mcard.hl { outline: 4px solid var(--sun); outline-offset: 2px; }
+.mcard.empty { border-style: dashed; background: transparent; box-shadow: none; }
+.mcard.small { border-radius: 5px; border-width: 1.5px; box-shadow: none; width: 26px; }
+.mcard.small b { font-size: 14px; }
+.mcard.small small { display: none; }
+.others { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.others li { background: var(--white); border: 2px solid var(--line); border-radius: 12px; padding: 6px 8px; display: grid; gap: 6px; }
+.others li.now { border-color: var(--pop); }
+.other-name { display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 500; }
+.other-name em { font-style: normal; color: var(--sun); letter-spacing: -2px; }
+.other-score { font-family: var(--display); font-weight: 400; margin-left: auto; }
+.table-mid { display: flex; justify-content: center; gap: 16px; background: #6F4FD8; border: 2px solid var(--ink); border-radius: var(--r-box); padding: 14px; box-shadow: 0 5px 0 var(--ink); }
+.pile-box { display: grid; justify-items: center; gap: 6px; width: 76px; color: var(--white); font-size: 12px; }
+.pile-box .mcard { width: 70px; }
+.pile-box .mcard b { font-size: 30px; }
+.mcard.deck:disabled { opacity: .8; cursor: default; }
+.hint { font-weight: 500; min-height: 1.6em; }
+.round-win { background: #FFF2C7; border: 2px solid var(--ink); border-radius: 12px; padding: 10px; }
+.my-house { display: grid; gap: 8px; max-width: 360px; width: 100%; justify-self: center; }
+.mh-log { list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--ink-2); display: grid; gap: 2px; text-align: center; }

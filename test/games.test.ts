@@ -8,6 +8,8 @@ import { treasureBid, resolvePicks, scoreOf, type TreasureState } from '../serve
 import { raceBet, ranking, settle, type RaceState, type Bet } from '../server/games/raceBet';
 import { drawRelay, bookFor, type DrawRelayState } from '../server/games/drawRelay';
 import { fakeArtist, mostVoted, type FakeArtistState } from '../server/games/fakeArtist';
+import { stormCaptain, judgeTrick, canPlay, roundScore, makeDeck as stormDeck, type StormState, type Card } from '../server/games/stormCaptain';
+import { monsterHouse, scoreGrid, tieBreak, makeDeck as monsterDeck, type MonsterState, type MCard } from '../server/games/monsterHouse';
 
 /** 시간을 직접 돌릴 수 있는 가짜 게임 환경 */
 function fakeCtx() {
@@ -285,6 +287,119 @@ const players = (n: number): GamePlayer[] => Array.from({ length: n }, (_, i) =>
   for (const p of t.players) fakeArtist.onAction(t, p.id, { type: 'vote', target: p.id === wrong ? t.fake : wrong }, g.ctx);
   assert.equal(t.winner, 'fake');
   console.log('✓ 가짜 화가');
+}
+
+
+// ---------- 폭풍의 선장 ----------
+{
+  const deck = stormDeck();
+  assert.equal(deck.length, 70);
+  const num = (suit: any, n: number, id = n): Card => ({ id, kind: 'num', suit, n });
+  const sp = (kind: any, id: number): Card => ({ id, kind });
+  const P = (by: string, card: Card, as?: any) => ({ by, card, as });
+  // 같은 색 큰 숫자 / 검정이 이김 / 특수 카드 상성
+  assert.equal(judgeTrick([P('a', num('green', 5)), P('b', num('green', 9)), P('c', num('yellow', 13))]).winner, 'b');
+  assert.equal(judgeTrick([P('a', num('green', 14)), P('b', num('black', 2))]).winner, 'b');
+  assert.deepEqual(judgeTrick([P('a', sp('dancer', 90)), P('b', sp('knight', 91))]), { winner: 'b', bonus: 20 });
+  assert.deepEqual(judgeTrick([P('a', sp('knight', 91)), P('b', sp('captain', 92)), P('c', sp('tigress', 93), 'knight')]), { winner: 'b', bonus: 60 });
+  assert.deepEqual(judgeTrick([P('a', sp('captain', 92)), P('b', sp('dancer', 90)), P('c', sp('knight', 91))]), { winner: 'b', bonus: 40 });
+  assert.equal(judgeTrick([P('a', sp('knight', 91)), P('b', sp('knight', 94))]).winner, 'a'); // 같은 특수는 먼저 낸 쪽
+  assert.equal(judgeTrick([P('a', sp('escape', 95)), P('b', sp('escape', 96))]).winner, 'a');
+  assert.equal(judgeTrick([P('a', sp('escape', 95)), P('b', num('purple', 3)), P('c', num('purple', 7))]).winner, 'c'); // 도망 뒤 첫 숫자 색
+  assert.equal(judgeTrick([P('a', sp('tigress', 93), 'escape'), P('b', num('green', 1))]).winner, 'b');
+  assert.equal(judgeTrick([P('a', num('black', 14)), P('b', num('yellow', 14))]).bonus, 30);
+  // 색 따르기
+  const hand = [num('green', 3, 1), num('yellow', 9, 2), sp('knight', 3)];
+  assert.equal(canPlay(hand, hand[1], [P('x', num('green', 8))]), false);
+  assert.equal(canPlay(hand, hand[2], [P('x', num('green', 8))]), true);
+  assert.equal(canPlay([num('yellow', 9, 2)], num('yellow', 9, 2), [P('x', num('green', 8))]), true);
+  // 점수
+  assert.equal(roundScore(5, 2, 2, 30), 70);
+  assert.equal(roundScore(5, 3, 1, 30), -20);
+  assert.equal(roundScore(7, 0, 0, 0), 70);
+  assert.equal(roundScore(7, 0, 1, 20), -70);
+  // 한 판 전체를 AI처럼 진행 (사람 차례는 시간 초과로 자동)
+  const f = fakeCtx();
+  const s = stormCaptain.create([...players(2), { id: 'bot_z', nickname: 'B', isBot: true }], f.ctx) as StormState;
+  assert.equal(s.hands.p0.length, 1);
+  assert.equal((stormCaptain.view(s, 'p1') as any).hand.length, 1);
+  assert.ok(!('hands' in (stormCaptain.view(s, 'p1') as any)));
+  stormCaptain.onAction(s, 'p0', { type: 'bid', bid: 1 }, f.ctx);
+  assert.ok(stormCaptain.onAction(s, 'p0', { type: 'bid', bid: 0 }, f.ctx));
+  assert.equal((stormCaptain.view(s, 'p1') as any).bids.p0, -1); // 다 낼 때까지 숫자 비공개
+  for (let i = 0; i < 400 && s.phase !== 'end'; i++) f.advance(10_000);
+  assert.equal(s.phase, 'end');
+  assert.equal(s.history.length, 10);
+  assert.ok(s.history.every((h, i) => Object.values(h.won).reduce((a, b) => a + b, 0) === i + 1));
+  // 8명이면 마지막 라운드도 8장
+  const g = fakeCtx();
+  const t = stormCaptain.create(players(8), g.ctx) as StormState;
+  t.round = 9; // 다음 라운드 = 10
+  for (const p of t.players) stormCaptain.onAction(t, p.id, { type: 'bid', bid: 0 }, g.ctx);
+  for (let i = 0; i < 200 && t.round < 10; i++) g.advance(10_000);
+  assert.equal(t.hands.p0.length + (t.phase === 'play' ? 0 : 0), Math.floor(70 / 8));
+  console.log('✓ 폭풍의 선장');
+}
+
+// ---------- 몬스터 하우스 ----------
+{
+  assert.equal(monsterDeck().length, 56);
+  const c = (n: number, kind: any = 'num', id = 0): MCard => ({ id, kind, n });
+  // 세로 짝(0,3)(1,4)(2,5)이 같으면 0점
+  assert.equal(scoreGrid([c(5), c(2), c(9), c(5), c(3), c(1)]).total, 15);
+  // 흉내쟁이는 옆 숫자 중 유리한 쪽: 1번 자리가 0번(4) 또는 2번(7)을 복사 → 아래(4)가 4면 짝
+  assert.equal(scoreGrid([c(4), c(0, 'copy'), c(7), c(1), c(4), c(2)]).total, 4 + 1 + 7 + 2 + 0);
+  // 흉내쟁이는 숫자 카드만 따라 함: 0번은 옆이 흉내쟁이뿐이라 0, 1번은 2번(3)을 따라 함 → 3 + 0 + 3
+  assert.equal(scoreGrid([c(0, 'copy'), c(0, 'copy'), c(3), c(3), c(3), c(0)]).total, 6);
+  assert.ok(tieBreak([9, 1, 0], [8, 2, 0]) < 0); // 큰 카드가 더 높은 쪽이 앞
+  const f = fakeCtx();
+  const s = monsterHouse.create([...players(2), { id: 'bot_m', nickname: 'B', isBot: true }], f.ctx) as MonsterState;
+  assert.equal(s.phase, 'flip');
+  const v0 = monsterHouse.view(s, 'p0') as any;
+  assert.ok(v0.grids.p1.every((x: any) => x === null)); // 남의 숨은 카드 안 보임
+  monsterHouse.onAction(s, 'p0', { type: 'flip', pos: 0 }, f.ctx);
+  assert.ok(monsterHouse.onAction(s, 'p0', { type: 'flip', pos: 1 }, f.ctx)); // 한 장만
+  monsterHouse.onAction(s, 'p1', { type: 'flip', pos: 5 }, f.ctx);
+  f.advance(3000);
+  assert.equal(s.phase, 'turn');
+  // 버린 더미에서 가져온 카드는 버릴 수 없음
+  const who = s.players[s.turn].id;
+  if (who !== 'bot_m') {
+    monsterHouse.onAction(s, who, { type: 'draw', from: 'discard' }, f.ctx);
+    assert.ok(monsterHouse.onAction(s, who, { type: 'discard', pos: 2 }, f.ctx));
+    monsterHouse.onAction(s, who, { type: 'place', pos: 2 }, f.ctx);
+    assert.equal(s.grids[who][2].up, true);
+  }
+  // 빙글이: 같은 자리 카드가 다음 사람들에게 차례로 넘어감
+  const g = fakeCtx();
+  const t = monsterHouse.create(players(3), g.ctx) as MonsterState;
+  for (const p of t.players) monsterHouse.onAction(t, p.id, { type: 'flip', pos: 0 }, g.ctx);
+  const first = t.players[t.turn].id;
+  const order = [0, 1, 2].map((k) => t.players[(t.turn + k) % 3].id);
+  const before = order.map((id) => t.grids[id][4].card.id);
+  t.deck.unshift({ id: 999, kind: 'spin', n: 10 });
+  monsterHouse.onAction(t, first, { type: 'draw', from: 'deck' }, g.ctx);
+  assert.ok(monsterHouse.onAction(t, first, { type: 'discard', pos: 3 }, g.ctx)); // 빙글이는 못 버림
+  monsterHouse.onAction(t, first, { type: 'place', pos: 4 }, g.ctx);
+  assert.equal(t.grids[order[0]][4].card.id, 999);
+  assert.equal(t.grids[order[1]][4].card.id, before[0]);
+  assert.equal(t.grids[order[2]][4].card.id, before[1]);
+  assert.equal(t.discard[0].id, before[2]); // 마지막 카드는 버린 더미 맨 아래
+  // 눈큰이: 숨은 카드 엿보기는 나에게만 보임
+  const second = t.players[t.turn].id;
+  t.deck.unshift({ id: 998, kind: 'eye', n: 10 });
+  monsterHouse.onAction(t, second, { type: 'draw', from: 'deck' }, g.ctx);
+  monsterHouse.onAction(t, second, { type: 'place', pos: 1 }, g.ctx);
+  assert.equal(t.phase, 'peek');
+  const hid = t.grids[second].findIndex((x) => !x.up);
+  monsterHouse.onAction(t, second, { type: 'peek', pos: hid }, g.ctx);
+  assert.ok((monsterHouse.view(t, second) as any).grids[second][hid]);
+  assert.equal((monsterHouse.view(t, first) as any).grids[second][hid], null);
+  // 끝까지 자동 진행 → 누군가 3승
+  for (let i = 0; i < 3000 && (t.phase as string) !== 'end'; i++) g.advance(50_000);
+  assert.equal(t.phase as string, 'end');
+  assert.ok(Object.values(t.wins).some((w) => w >= 3));
+  console.log('✓ 몬스터 하우스');
 }
 
 console.log('\n게임 규칙 테스트 통과');

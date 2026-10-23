@@ -12,6 +12,8 @@ import { TreasureBidView } from '../games/TreasureBid';
 import { RaceBetView } from '../games/RaceBet';
 import { DrawRelayView } from '../games/DrawRelay';
 import { FakeArtistView } from '../games/FakeArtist';
+import { MonsterHouseView } from '../games/MonsterHouse';
+import { StormCaptainView } from '../games/StormCaptain';
 
 export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => void }) {
   const g = gameById(room.gameId)!;
@@ -55,6 +57,10 @@ export function RoomPage({ room, onLeave }: { room: RoomView; onLeave: () => voi
         <DrawRelayView room={room} onLeave={leave} />
       ) : room.gameId === 'fake-artist' ? (
         <FakeArtistView room={room} onLeave={leave} />
+      ) : room.gameId === 'monster-house' ? (
+        <MonsterHouseView room={room} onLeave={leave} />
+      ) : room.gameId === 'storm-captain' ? (
+        <StormCaptainView room={room} onLeave={leave} />
       ) : (
         <p className="empty">이 게임은 준비 중이에요.</p>
       )}
